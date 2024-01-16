@@ -83,13 +83,51 @@ Symfony ships with the following value resolvers in the
     or the :ref:`MapQueryString <controller-mapping-query-string>` attribute
     in order to use this resolver.
 
+    There is an example here :doc:`controller </controller>`
+
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\RequestAttributeValueResolver`
     Attempts to find a request attribute that matches the name of the argument.
+
+    Example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\HttpFoundation\Response;
+
+        class DefaultController
+        {
+           #[Route('/example/{$productData}')]
+           public function showProduct(string $productData): Response
+           {
+                // ...
+           }
+        }
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\DateTimeValueResolver`
     Attempts to find a request attribute that matches the name of the argument
     and injects a ``DateTimeInterface`` object if type-hinted with a class
     extending ``DateTimeInterface``.
+
+    Example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\HttpFoundation\Response;
+
+        class DefaultController
+        {
+            #[Route('/show-date/{dateParameter}')]
+            public function showDate( \DateTimeInterface $dateParameter): Response
+            {
+                $formattedDate = $dateParameter->format('Y-m-d H:i:s');
+
+                // ...
+            }
+        }
 
     By default any input that can be parsed as a date string by PHP is accepted.
     You can restrict how the input can be formatted with the
@@ -106,18 +144,110 @@ Symfony ships with the following value resolvers in the
     Injects the current ``Request`` if type-hinted with ``Request`` or a class
     extending ``Request``.
 
+    For example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\HttpFoundation\Response;
+        use Symfony\Component\HttpFoundation\Request;
+
+        class DefaultController
+        {
+           #[Route('/show-request')]
+            public function showRequest(Request $request): Response
+            {
+              // ...
+            }
+        }
+
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\ServiceValueResolver`
     Injects a service if type-hinted with a valid service class or interface. This
     works like :doc:`autowiring </service_container/autowiring>`.
+
+    Example::
+
+        // src/Service/MyServiceInterface.php
+        namespace App\Service;
+
+        interface MyServiceInterface
+        {
+            public function doSomething(): string;
+        }
+
+        // src/Service/MyService.php
+        namespace App\Service;
+
+        class MyService implements MyServiceInterface
+        {
+            public function doSomething(): string
+            {
+                return 'Hello from MyService!';
+            }
+        }
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\HttpFoundation\Response;
+        use App\Service\MyService;
+
+        class DefaultController
+        {
+           #[Route('/show-service')]
+           public function showService(MyService $myService): Response
+           {
+               $result = $myService->doSomething();
+
+               return new Response($result);
+            }
+        }
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\SessionValueResolver`
     Injects the configured session class implementing ``SessionInterface`` if
     type-hinted with ``SessionInterface`` or a class implementing
     ``SessionInterface``.
 
+    For example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\HttpFoundation\Response;
+        use Symfony\Component\HttpFoundation\Session\SessionInterface;
+
+        class DefaultController
+        {
+           #[Route('/show-session')]
+            public function showSession(SessionInterface $session): Response
+            {
+                // ...
+            }
+        }
+
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\DefaultValueResolver`
     Will set the default value of the argument if present and the argument
     is optional.
+
+    For example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\HttpFoundation\Response;
+        use Symfony\Component\Routing\Annotation\Route;
+
+        class DefaultController
+        {
+            #[Route('/greet/{name}')]
+            public function greet(?string $name = 'Guest'): Response
+            {
+                return new Response('Hello, ' . $name . '!');
+            }
+        }
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\UidValueResolver`
     Attempts to convert any UID values from a route path parameter into UID objects.
@@ -155,6 +285,27 @@ In addition, some components, bridges and official bundles provide other value r
     can be set to ``null`` in case  the controller can be accessed by anonymous
     users. It requires installing the :doc:`SecurityBundle </security>`.
 
+    Example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\HttpFoundation\Response;
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\Security\Http\Attribute\CurrentUser;
+
+        class DefaultController
+        {
+             #[Route('/new')]
+             public function new(
+             Request $request,
+             #[CurrentUser] ?User $user
+             ): Response
+             {
+                // ...
+             }
+        }
+
     If the argument is not nullable and there is no logged in user or the logged in
     user has a user class not matching the type-hinted class, an ``AccessDeniedException``
     is thrown by the resolver to prevent access to the controller.
@@ -165,6 +316,24 @@ In addition, some components, bridges and official bundles provide other value r
 
     If the argument is not nullable and there is no logged in token, an ``HttpException``
     with status code 401 is thrown by the resolver to prevent access to the controller.
+
+    For example::
+
+        // src/Controller/DefaultController.php
+        namespace App\Controller;
+
+        use Symfony\Component\HttpFoundation\Response;
+        use Symfony\Component\Routing\Annotation\Route;
+        use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+
+        class DefaultController
+        {
+            #[Route('/secured', methods: ['GET'])]
+            public function securedAction(TokenInterface $token): Response
+            {
+                // ...
+            }
+        }
 
 :class:`Symfony\\Bridge\\Doctrine\\ArgumentResolver\\EntityValueResolver`
     Automatically query for an entity and pass it as an argument to your controller.
