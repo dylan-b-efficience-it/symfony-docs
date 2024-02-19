@@ -172,6 +172,15 @@ Returns ``true`` if the current user has the given role.
 Optionally, an object can be passed to be used by the voter. More information
 can be found in :ref:`security-template`.
 
+.. code-block:: twig
+
+    {% set post = fetchPostById(123) %}
+
+    {# Display an edit link if the user has the 'EDIT' permission for the 'content' field of the post #}
+    {% if is_granted('EDIT', post, 'content') %}
+        <a href="{{ path('edit_post', { 'id': post.id }) }}">Edit Post Content</a>
+    {% endif %}
+
 logout_path
 ~~~~~~~~~~~
 
@@ -242,6 +251,18 @@ Returns the absolute URL (with scheme and host) for the given route. If
     Read more about :doc:`Symfony routing </routing>` and about
     :ref:`creating links in Twig templates <templates-link-to-pages>`.
 
+.. code-block:: twig
+
+    {# Generate an absolute URL for the 'homepage' route without parameters #}
+    <a href="{{ url('homepage') }}">Home</a>
+
+    {# Generate an absolute URL for the 'blog_post' route with parameters #}
+    <a href="{{ url('blog_post', { 'slug': 'symfony-is-awesome', 'category': 'framework' }) }}">Read the article</a>
+
+    {# Generate a scheme-relative URL for the 'contact' route #}
+    <a href="{{ url('contact', {}, true) }}">Contact us (scheme-relative)</a>
+    {# //example.com/home #}
+
 .. _reference-twig-function-absolute-url:
 
 absolute_url
@@ -257,6 +278,14 @@ absolute_url
 Returns the absolute URL (with scheme and host) from the passed relative path. Combine it with the
 :ref:`asset() function <reference-twig-function-asset>` to generate absolute URLs
 for web assets. Read more about :ref:`Linking to CSS, JavaScript and Image Assets <templates-link-to-assets>`.
+
+.. code-block:: twig
+
+    {# Generate an absolute URL for the path '/about' #}
+    <a href="{{ absolute_url('/about') }}">About Us</a>
+
+    {# Generate an absolute URL for the path 'images/logo.png' #}
+    <img src="{{ absolute_url('images/logo.png') }}" alt="Logo">
 
 .. _reference-twig-function-relative-path:
 
@@ -287,6 +316,18 @@ expression
 
 Creates an :class:`Symfony\\Component\\ExpressionLanguage\\Expression` related
 to the :doc:`ExpressionLanguage component </components/expression_language>`.
+
+.. code-block:: twig
+
+    {# Define an Expression using the ExpressionLanguage component #}
+    {% set expression = '2 * (3 + 4)' %}
+
+    {# Evaluate the Expression using the ExpressionLanguage component #}
+    {% set expressionResult = expressionLanguage.evaluate(expression) %}
+
+    {#Output the result of the Expression #}
+    <p>The result of the expression '{{ expression }}' is: {{ expressionResult }}</p>
+    {# The result of the expression '2 * (3 + 4)' is: 14 #}
 
 impersonation_path
 ~~~~~~~~~~~~~~~~~~
@@ -412,6 +453,12 @@ Makes a technical name human readable (i.e. replaces underscores by spaces
 or transforms camelCase text like ``helloWorld`` to ``hello world``
 and then capitalizes the string).
 
+.. code-block:: twig
+
+    {# Humanize the technical name using the humanize filter #}
+    {{ 'helloWorld'|humanize }}
+    {# Hello world #}
+
 .. _reference-twig-filter-trans:
 
 trans
@@ -432,6 +479,17 @@ trans
 
 Translates the text into the current language. More information in
 :ref:`Translation Filters <translation-filters>`.
+
+.. code-block:: twig
+
+	{# Generate a translated message for the key 'hello' #}
+	<p>{{ 'Hello'|trans }}</p>
+	{# Hello #}
+
+	{# Generate a translated message with parameters #}
+	<p>{{ 'Hello %name%, your balance is %balance%.'|trans({ '%name%': 'John', '%balance%': 200 }, 'emails', 'en') }}</p>
+	{# Hello John, your balance is 200. #}
+
 
 sanitize_html
 ~~~~~~~~~~~~~
@@ -495,6 +553,16 @@ abbr_class
 Generates an ``<abbr>`` element with the short name of a PHP class (the
 FQCN will be shown in a tooltip when a user hovers over the element).
 
+.. code-block:: twig
+
+	{# Original class name #}
+	{{ class }}
+	{# 'AppBundle\\Entity\\Product' #}
+
+	{# Abbreviated class name #}
+	{{ class|abbr_class }}
+	{# Product #}
+
 abbr_method
 ~~~~~~~~~~~
 
@@ -508,6 +576,16 @@ abbr_method
 Generates an ``<abbr>`` element using the ``FQCN::method()`` syntax. If
 ``method`` is ``Closure``, ``Closure`` will be used instead and if ``method``
 doesn't have a class name, it's shown as a function (``method()``).
+
+.. code-block:: twig
+
+ 	{# Original method name #}
+   	{{ method }}
+	{# 'App\\Controller\\DashboardController::test' #}
+
+	{# Abbreviated method name #}
+	{{ method|abbr_method }}
+	{# DashboardController::test #}
 
 format_args
 ~~~~~~~~~~~
@@ -550,6 +628,15 @@ file_excerpt
 Generates an excerpt of a code file around the given ``line`` number. The
 ``srcContext`` argument defines the total number of lines to display around the
 given line number (use ``-1`` to display the whole file).
+
+.. code-block:: twig
+
+    {{ 'templates/home.html.twig'|file_excerpt(10) }}
+    {# Sed hendrerit magna quis nisi porttitor placerat. Sed scelerisque. #} // line 7
+    {# .... #} // line 8 and 9
+    {#  Sed purus ipsum, tristique non lectus ac, porttitor tincidunt elit #} // line 10
+    {# ... #} // line 11 and 12
+    {# Duis tincidunt ultricies lobortis. Pellentesque nec enim lorem. Maecenas vel finibus nulla #} // line 13
 
 format_file
 ~~~~~~~~~~~
@@ -687,6 +774,14 @@ trans_default_domain
 
 This will set the default domain in the current template.
 
+.. code-block:: twig
+
+    {# Set the default domain for translation #}
+    {% trans_default_domain 'messages' %}
+
+    {# Use translation with the default domain #}
+    {{ 'Welcome'|trans }}
+
 .. _reference-twig-tag-stopwatch:
 
 stopwatch
@@ -698,6 +793,20 @@ stopwatch
 
 This measures the time and memory used to execute some code in the template and
 displays it in the Symfony profiler. See :ref:`how to profile Symfony applications <profiling-applications>`.
+
+.. code-block:: twig
+
+	{# Start timing for a specific event #}
+	{% stopwatch 'render_template' %}
+
+	{# Code to measure #}
+	{% for i in 1..500 %}
+    	{{ i }}
+	{% endfor %}
+
+	{# Stop timing for the specified event #}
+	{% endstopwatch %}
+	{# 1 2 3 4 .... 497 498 499 500 #}
 
 .. _reference-twig-tests:
 
